@@ -1,19 +1,37 @@
+# Defines the name of the workflow
 name: Java Workflow
 
+# Specifies the events that trigger the workflow: on every push and manual trigger
 on:
    push:
    workflow_dispatch:
 
 jobs:
+  # Defines a job named 'java-job-execution' that runs on the latest Ubuntu version
   java-job-execution:
     runs-on: ubuntu-latest
 
     steps:
+      # Checks out the repository so the workflow can access the code
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
+      # Sets up the Java Development Kit (JDK) version 17 from the Oracle distribution
       - name: Setup Java JDK
         uses: actions/setup-java@v4.7.0
         with:
           java-version: '17'
           distribution: 'oracle'
+
+      # Runs the Maven build in batch mode, updating any snapshots and executing the 'verify' phase
+      - run: mvn --batch-mode --update-snapshots verify
+
+      # Creates a 'staging' directory and copies all .jar files from the 'target' directory to 'staging'
+      - run: mkdir staging &&  cp target/*.jar staging
+
+      # Uploads the contents of the 'staging' directory as an artifact named 'Package_Java'
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.6.0 
+        with:
+          name: Package_Java
+          path: staging
